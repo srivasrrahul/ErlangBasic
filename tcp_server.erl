@@ -23,21 +23,26 @@ start_nano_server() ->
   mainLoop(ListenSocket,ChatServerPid).
 
 iterateNext(Table,PrevKey,Fun) ->
+  io:format("Inside iterate next~n"),
   case ets:next(Table,PrevKey) of
-    {Pid,_} ->
-      Fun(Pid),
-      iterateNext(Table,Pid,Fun);
     '$end_of_table' ->
-      io:format("Iterating finished")
+      io:format("Iterating finished~n");
+    Pid ->
+      Fun(Pid),
+      iterateNext(Table,Pid,Fun)
+
   end.
 
 iterate(Table,Fun) ->
+  io:format("Inside iterate ~n"),
   case ets:first(Table) of
-    {Pid,_} ->
-      Fun(Pid),
-      iterateNext(Table,Pid,Fun);
     '$end_of_table' ->
-      io:format("Table is empty")
+      io:format("Table is empty~n");
+
+    Pid ->
+      Fun(Pid),
+      iterateNext(Table,Pid,Fun)
+
   end.
 
 broadcast(Table,ClientPid,Message) ->
@@ -47,11 +52,13 @@ broadcast(Table,ClientPid,Message) ->
 chatServerGroup(Table) ->
   receive
     {From,newClientAdded,ClientPid} ->
+      io:format("ChatServer recieved indication of new client~n"),
       ets:insert(Table,{ClientPid,0}),
       chatServerGroup(Table);
     {From,clientLoggedOff,ClientPid} ->
       ets:delete(Table,ClientPid);
     {From,messageRecieved,ClientPid,Message} ->
+      io:format("ChatServer recieved indication of new message from client~p ~n",[ClientPid]),
       broadcast(Table,ClientPid,Message),
       chatServerGroup(Table)
 
@@ -106,6 +113,7 @@ loop(Socket,ChatServerPid) ->
       ChatServerPid ! {self(),clientLoggedOff,self()};
 
     {sendMessage,Message} ->
+      io:format("Sending to client message~p~n",[Message]),
       gen_tcp:send(Socket,Message),
       loop(Socket,ChatServerPid);
 
