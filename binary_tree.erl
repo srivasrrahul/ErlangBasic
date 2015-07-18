@@ -1,7 +1,7 @@
 %%%-------------------------------------------------------------------
 %%% @author rasrivastava
 %%% @copyright (C) 2015, <COMPANY>
-%%% @doc Its basic binary tree
+%%% @doc Its basic binary search tree
 %%%
 %%% @end
 %%% Created : 18. Jul 2015 11:19 AM
@@ -10,7 +10,7 @@
 -author("rasrivastava").
 
 %% API
--export([make_binary_tree/1,add_tree/2,test_tree/0]).
+-export([make_binary_tree/1,add_tree/2,find_element/2,test_tree/0]).
 
 make_binary_tree(RootElement) ->
   {RootElement,null,null}.
@@ -35,10 +35,27 @@ add_tree(CurrentNode,Element) ->
 
   end.
 
+find_element(null,_) ->
+  null;
+find_element(CurrentNode,Element) ->
+  CurrentElement = get_current_element(CurrentNode),
+  case Element =:= CurrentElement of
+    true ->
+      CurrentNode;
+    false ->
+      case  Element < CurrentElement of
+        true ->
+          find_element(get_left_link(CurrentNode),Element);
+        false ->
+          find_element(get_right_link(CurrentNode),Element)
+      end
+  end.
+
 
 test_tree() ->
   T = make_binary_tree(10),
   T1 = add_tree(T,15),
   T2 = add_tree(T1,12),
   T3 = add_tree(T2,9),
-  io:format("Tree is ~p",[T3]).
+  io:format("Tree is ~p~n",[T3]),
+  io:format("~p ~n",[find_element(T3,19)]).
